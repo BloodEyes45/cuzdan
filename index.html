@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cüzdan — hesaplar</title>
+<meta name="description" content="Banka hesapları, nakit ve kredi kartlarını tek ekranda toplayan; gelir ve gider girilebilen küçük cüzdan uygulaması.">
+<meta name="theme-color" content="#050507" id="metaTheme">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Cüzdan">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true">
+  <span class="blob a"></span>
+  <span class="blob b"></span>
+  <span class="blob c"></span>
+</div>
+
+<div class="app">
+
+  <header class="appbar">
+    <div class="appbar-brand">
+      <img class="logo" src="logo.svg" alt="" width="38" height="38">
+      <div class="appbar-text">
+        <h1>Cüzdan</h1>
+        <p id="appSub">—</p>
+      </div>
+    </div>
+    <span class="today-pill" id="todayPill">—</span>
+  </header>
+
+  <main>
+
+    <!-- ============ BUGÜN ============ -->
+    <section id="view-today" class="view" aria-label="Bugün">
+
+      <div class="glass hero">
+        <div class="hero-top">
+          <span class="eyebrow">Toplam para</span>
+          <span class="mini-chip" id="heroBadge">toplam</span>
+        </div>
+        <div class="hero-amount" aria-live="polite">
+          <span id="heroAmount">—</span><span class="cur">₺</span>
+        </div>
+        <p class="hero-note" id="heroNote">Hesaplarını ayarlardan güncelle.</p>
+        <div class="hero-foot">
+          <span>Bugün <b id="heroToday">—</b></span>
+          <span>Bu ay <b id="heroMonth">—</b></span>
+        </div>
+      </div>
+
+      <div class="glass card">
+        <div class="card-head">
+          <h2>Hesaplar</h2>
+          <button type="button" class="link-btn" id="editAccounts">Düzenle</button>
+        </div>
+        <ul class="acc-list" id="accList"></ul>
+        <p class="empty" id="accEmpty">Henüz hesap yok. Ayarlardan ekle.</p>
+      </div>
+
+      <div class="glass card" aria-label="Kayıt ekle">
+        <div class="segmented type-seg" id="typeSeg" role="group">
+          <button type="button" data-type="expense" aria-pressed="true">Gider</button>
+          <button type="button" data-type="income" aria-pressed="false">Gelir</button>
+        </div>
+
+        <label class="field acc-select">
+          <span>Hesap</span>
+          <select id="accSelect"></select>
+        </label>
+
+        <div class="amount-field">
+          <span class="cur" aria-hidden="true">₺</span>
+          <input id="amountInput" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Tutar">
+        </div>
+
+        <div class="chips" id="chips" role="group" aria-label="Kategori"></div>
+        <p class="hint type-hint" id="typeHint"></p>
+
+        <input class="note-field" id="noteInput" type="text" maxlength="80" autocomplete="off" placeholder="Not (isteğe bağlı)" aria-label="Not">
+        <button type="button" class="btn primary" id="addBtn">Gideri ekle</button>
+      </div>
+
+      <div class="glass card">
+        <div class="card-head">
+          <h2>Bugünün hareketleri</h2>
+          <span id="todayCount"></span>
+        </div>
+        <ul class="list" id="todayList"></ul>
+        <p class="empty" id="todayEmpty">Bugün henüz hareket yok.</p>
+      </div>
+
+    </section>
+
+    <!-- ============ GEÇMİŞ ============ -->
+    <section id="view-history" class="view" hidden aria-label="Geçmiş">
+
+      <div class="glass card">
+        <div class="month-nav">
+          <button type="button" class="nav-btn" id="prevMonth" aria-label="Önceki ay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+          </button>
+          <div class="month-title"><b id="histMonth">—</b><span id="histMonthSub"></span></div>
+          <button type="button" class="nav-btn" id="nextMonth" aria-label="Sonraki ay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+          </button>
+        </div>
+        <div class="hist-stats">
+          <div><span>Gelen</span><b id="histIn">—</b></div>
+          <div><span>Giden</span><b id="histOut">—</b></div>
+          <div><span>Net</span><b id="histNet">—</b></div>
+        </div>
+      </div>
+
+      <div class="glass card">
+        <div class="card-head"><h2>Günlük harcama</h2><span id="histPeak"></span></div>
+        <div class="bars" id="bars"></div>
+        <div class="bars-axis"><span>1</span><span id="barsMid">15</span><span id="barsEnd">31</span></div>
+      </div>
+
+      <div class="glass card">
+        <div class="card-head"><h2>Kategoriler</h2><span id="histCatCount"></span></div>
+        <div class="cat-list" id="cats"></div>
+        <p class="empty" id="catsEmpty">Bu ay harcama yok.</p>
+      </div>
+
+      <div class="glass card">
+        <div class="card-head"><h2>Hareketler</h2><span id="histCount"></span></div>
+        <div id="histList"></div>
+        <p class="empty" id="histEmpty">Bu ay için kayıt yok.</p>
+      </div>
+
+    </section>
+
+    <!-- ============ AYARLAR ============ -->
+    <section id="view-settings" class="view" hidden aria-label="Ayarlar">
+
+      <div class="glass card">
+        <div class="card-head">
+          <h2>Hesaplar</h2>
+          <span id="settingsTotal"></span>
+        </div>
+        <ul class="acc-list" id="accSettings"></ul>
+
+        <form class="acc-form" id="accForm" autocomplete="off">
+          <div class="acc-form-row">
+            <input id="accName" type="text" maxlength="30" placeholder="Hesap adı" aria-label="Hesap adı">
+            <input id="accBalance" type="text" inputmode="decimal" placeholder="0" aria-label="Bakiye">
+          </div>
+          <div class="acc-form-row">
+            <select id="accKind" aria-label="Hesap türü">
+              <option value="cash">Banka / Nakit</option>
+              <option value="card">Kredi kartı</option>
+            </select>
+            <button type="submit" class="btn primary acc-add">Hesap ekle</button>
+          </div>
+        </form>
+
+        <p class="hint">Kredi kartı için borç tutarını yaz. Toplam, nakit varlıktan kart borçlarını düşer.</p>
+      </div>
+
+      <div class="glass card">
+        <h2>Görünüm</h2>
+        <div class="segmented" id="themeSeg" role="group" aria-label="Tema">
+          <button type="button" data-theme-value="auto">Sistem</button>
+          <button type="button" data-theme-value="dark">Koyu</button>
+          <button type="button" data-theme-value="light">Açık</button>
+        </div>
+      </div>
+
+      <div class="glass card">
+        <h2>Veri</h2>
+        <div class="data-actions">
+          <button type="button" class="btn" id="exportBtn">Yedek al</button>
+          <button type="button" class="btn" id="importBtn">Yedekten yükle</button>
+        </div>
+        <input id="importFile" type="file" accept="application/json,.json" hidden>
+        <button type="button" class="btn danger" id="resetBtn">Tüm verileri sil</button>
+        <p class="hint">Veriler yalnızca bu cihazın tarayıcısında saklanır. Yedek dosyasını saklayarak başka cihaza taşıyabilirsin.</p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <nav class="tabbar glass" aria-label="Gezinme">
+    <button type="button" class="tab" data-view="today" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.8 10v9.3h12.4V10"/><path d="M10 19.3v-4.5h4v4.5"/>
+      </svg>
+      <span>Bugün</span>
+    </button>
+    <button type="button" class="tab" data-view="history" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M5 19.2V11"/><path d="M12 19.2V4.8"/><path d="M19 19.2v-6.4"/>
+      </svg>
+      <span>Geçmiş</span>
+    </button>
+    <button type="button" class="tab" data-view="settings" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M4 8h9.4"/><path d="M18.6 8H20"/><circle cx="16" cy="8" r="2.2"/>
+        <path d="M4 16h4.4"/><path d="M13.6 16H20"/><circle cx="11" cy="16" r="2.2"/>
+      </svg>
+      <span>Ayarlar</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- ============ HAREKET DETAY SAYFASI ============ -->
+<div class="sheet-wrap" id="sheetWrap" hidden>
+  <div class="sheet-scrim" data-close="1"></div>
+  <div class="sheet glass" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="grabber" aria-hidden="true"></div>
+    <h2 id="sheetTitle">Hareket</h2>
+    <label class="field">
+      <span>Tutar</span>
+      <input id="sheetAmount" type="text" inputmode="decimal" autocomplete="off">
+    </label>
+    <label class="field" id="sheetCatField">
+      <span>Kategori</span>
+      <select id="sheetCat"></select>
+    </label>
+    <label class="field">
+      <span>Not</span>
+      <input id="sheetNote" type="text" maxlength="80" autocomplete="off" placeholder="—">
+    </label>
+    <p class="sheet-meta" id="sheetMeta"></p>
+    <div class="sheet-actions">
+      <button type="button" class="btn primary" id="sheetSave">Kaydet</button>
+      <button type="button" class="btn danger" id="sheetDelete">Sil</button>
+    </div>
+    <button type="button" class="sheet-close" data-close="1">Vazgeç</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
